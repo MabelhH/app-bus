@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                    String         @id @default(uuid())
+  email                 String         @unique
+  name                  String
+  apellido              String
+  password              String
+  telefono              String         
+  dni                   String         @unique
+  idrol                 String
+  passwordResetTokens   PasswordReset[]
+  estadoId              String
+  reservas              reserva[]
+  ocurrenciasReportadas ocurrencia[]
+  notificaciones        notificacion[]
+  rol                   rol            @relation(fields: [idrol], references: [id])
+  estadoUsuario         estadousuario @relation(fields: [estadoId], references: [id])
+  estado                Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model rol {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  users     user[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id]) 
+}
+
+model estadousuario {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  users     user[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model estadobus {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  buses     bus[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model estadoviaje {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  viajes    viaje[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model estadoviajeasiento {
+  id             String          @id @default(uuid())
+  nombre         String          @unique
+  viaje_asientos viaje_asiento[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model estadoreserva {
+  id        String    @id @default(uuid())
+  nombre    String    @unique
+  reservas  reserva[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model metodopago {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  pagos     pago[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model estadoocurrencia {
+  id          String       @id @default(uuid())
+  nombre      String       @unique
+  ocurrencias ocurrencia[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model tipoocurrencia {
+  id          String       @id @default(uuid())
+  nombre      String       @unique
+  ocurrencias ocurrencia[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+
+model asiento {
+  id             String          @id @default(uuid())
+  busId          String
+  numeroAsiento  Int
+  bus            bus             @relation(fields: [busId], references: [id])
+  viaje_asientos viaje_asiento[]
+  boletos        boleto[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  @@unique([busId, numeroAsiento])
+}
+
+model bus {
+  id                  String       @id @default(uuid())
+  placa               String       @unique
+  marcaId             String
+  modelo              String
+  capacidad           Int
+  estadoId            String
+  ultimaLatitud       Float?
+  ultimaLongitud      Float?
+  ultimaActualizacion DateTime?
+  ultimoViajeId       String?
+  ocurrencias         ocurrencia[]
+  marca               marca        @relation(fields: [marcaId], references: [id])
+  estado              estadobus   @relation(fields: [estadoId], references: [id])
+  viajes              viaje[]
+  asientos            asiento[]
+  ubicaciones         ubicacionBus[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+ 
+model marca {
+  id            String       @id @default(uuid())
+  nombre        String
+  buses         bus[] 
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model ruta {
+  id            String   @id @default(uuid())
+  origen        String
+  destino       String
+  origenLat     Float?
+  origenLng     Float?
+  destinoLat    Float?
+  destinoLng    Float?
+  distancia     Float?
+  precio        Float
+  viajes        viaje[]
+  paradas   Parada[]
+  estado        Boolean  @default(true)  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model viaje {
+  id             String          @id @default(uuid())
+  fecha          DateTime
+  hora           String
+  busId          String
+  rutaId         String
+  reservas       reserva[]
+  idEstadoViaje  String
+  estadoViaje    estadoviaje    @relation(fields: [idEstadoViaje], references: [id])
+  viaje_asientos viaje_asiento[] // Changed from "horarios viaje_horario[]"
+  estado         Boolean         @default(true)
+  bus            bus             @relation(fields: [busId], references: [id])
+  ruta           ruta            @relation(fields: [rutaId], references: [id])
+  ocurrencias    ocurrencia[]
+  ubicaciones    ubicacionBus[] 
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+model ubicacionBus {
+  id        String   @id @default(uuid())
+  busId     String
+  viajeId   String?
+  latitud   Float
+  longitud  Float
+  velocidad Float
+  timestamp DateTime @default(now())
+  bus   bus    @relation(fields: [busId], references: [id])
+  viaje viaje? @relation(fields: [viajeId], references: [id])
+  @@index([busId])
+  @@index([viajeId])
+  @@index([timestamp])
+  @@map("ubicaciones_bus")
+}
+model viaje_asiento {
+  id                String               @id @default(uuid())
+  viajeId           String
+  asientoId         String
+  estadoId          String
+  reservadoHasta    DateTime?   
+  reservadoPor      String?   
+  reservaId         String?   
+  viaje             viaje                @relation(fields: [viajeId], references: [id])
+  asiento           asiento              @relation(fields: [asientoId], references: [id])
+  estado            estadoviajeasiento @relation(fields: [estadoId], references: [id])
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  @@unique([viajeId, asientoId])
+}
+
+model reserva {
+  id        String         @id @default(uuid())
+  fecha     DateTime       @default(now())
+  userId    String
+  viajeId   String
+  estadoId  String
+  user      user           @relation(fields: [userId], references: [id])
+  viaje     viaje          @relation(fields: [viajeId], references: [id])
+  estado    estadoreserva @relation(fields: [estadoId], references: [id])
+  boletos   boleto[]
+  pagos     pago[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model boleto {
+  id        String   @id @default(uuid())
+  codigo    String   @unique
+  reservaId String
+  asientoId String
+  reserva   reserva  @relation(fields: [reservaId], references: [id])
+  asiento   asiento  @relation(fields: [asientoId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model pago {
+  id         String      @id @default(uuid())
+  monto      Float
+  fecha      DateTime    @default(now())
+  reservaId  String
+  metodoId   String
+  reserva    reserva     @relation(fields: [reservaId], references: [id])
+  metodoPago metodopago @relation(fields: [metodoId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model notificacion {
+  id        String   @id @default(uuid())
+  mensaje   String
+  tipoId    String
+  tipo      tipo_notificacion @relation(fields: [tipoId], references: [id])
+  fecha     DateTime @default(now())
+  userId    String
+  user      user     @relation(fields: [userId], references: [id])
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model tipo_notificacion {
+  id        String   @id @default(uuid())
+  codigo    String   @unique   // ORIGEN, DESTINO, etc
+  nombre    String
+  notificaciones notificacion[]
+}
+
+model Parada {
+  id            String     @id @default(uuid())
+  rutaId        String
+  ruta          ruta     @relation(fields: [rutaId], references: [id])
+  nombre        String
+  latitud       Float
+  longitud      Float
+  orden         Int 
+  origenLat     Float?
+  origenLng     Float?
+  destinoLat    Float?
+  destinoLng    Float?  
+  precio_tramo  Float 
+  distancia     Float  // Orden de la parada en la ruta
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ocurrencia {
+  id           String   @id @default(uuid())
+  descripcion  String
+  fecha        DateTime @default(now())
+  busId        String
+  viajeId      String
+  reportadoPor String
+  estadoId     String
+  tipoId       String
+
+  bus       bus               @relation(fields: [busId], references: [id])
+  viaje     viaje             @relation(fields: [viajeId], references: [id])
+  usuario   user              @relation(fields: [reportadoPor], references: [id])
+  estado    estadoocurrencia @relation(fields: [estadoId], references: [id])
+  tipo      tipoocurrencia   @relation(fields: [tipoId], references: [id])
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}

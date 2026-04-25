@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Exitoso - Ticket de Viaje</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Ticket Styles */
+        .ticket {
+            background: white;
+            border-radius: 16px;
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+            overflow: hidden;
+        }
+
+        .ticket-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .ticket-header h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .ticket-header small {
+            opacity: 0.9;
+            font-size: 11px;
+        }
+
+        .ticket-body {
+            padding: 20px;
+        }
+
+        .ticket-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #f0f0f0;
+        }
+
+        .ticket-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .ticket-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .route-info {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .route-city {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .route-arrow {
+            font-size: 20px;
+            color: #764ba2;
+            margin: 5px 0;
+        }
+
+        .seat-badge {
+            background: #fef3c7;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .seat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #92400e;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+
+        .qr-code canvas {
+            margin: 0 auto;
+        }
+
+        .success-icon {
+            font-size: 60px;
+            margin-bottom: 10px;
+            animation: bounce 1s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .success-title {
+            color: #10b981;
+            font-size: 22px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+            margin-top: 0;
+        }
+
+        .fallback-link {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .fallback-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading-overlay {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Pantalla de carga -->
+        <div id="loadingContainer" class="loading-overlay">
+            <div class="loader"></div>
+            <p style="margin-top: 15px; color: #667eea;">Procesando tu pago...</p>
+        </div>
+
+        <!-- Contenido de éxito (se muestra después de cargar) -->
+        <div id="successContainer" class="hidden">
+            <div class="success-icon">✅</div>
+            <h2 class="success-title">¡Pago Exitoso!</h2>
+            <p class="success-message">
+                Gracias por tu compra. Tu ticket ha sido generado.
+            </p>
+
+            <!-- TICKET -->
+            <div class="ticket" id="ticket">
+                <div class="ticket-header">
+                    <h3>🎫 TICKET DE VIAJE</h3>
+                    <small id="ticketCodigo">Cargando...</small>
+                </div>
+                <div class="ticket-body">
+                    <div class="ticket-row">
+                        <span class="ticket-label">PASAJERO</span>
+                        <span class="ticket-value" id="ticketPasajero">---</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-label">DOCUMENTO</span>
+                        <span class="ticket-value" id="ticketDni">---</span>
+                    </div>
+                    
+                    <div class="route-info">
+                        <div class="route-city" id="ticketOrigen">---</div>
+                        <div class="route-arrow">⬇️</div>
+                        <div class="route-city" id="ticketDestino">---</div>
+                    </div>
+                    
+                    <div class="ticket-row">
+                        <span class="ticket-label">FECHA</span>
+                        <span class="ticket-value" id="ticketFecha">---</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-label">HORA</span>
+                        <span class="ticket-value" id="ticketHora">---</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-label">BUS</span>
+                        <span class="ticket-value" id="ticketBus">---</span>
+                    </div>
+                    
+                    <div class="seat-badge">
+                        <div style="font-size: 12px; color: #92400e;">TU ASIENTO</div>
+                        <div class="seat-number" id="ticketAsiento">---</div>
+                    </div>
+                    
+                    <div class="qr-code" id="qrContainer">
+                        <div id="qrCode"></div>
+                    </div>
+                    
+                    <div class="ticket-row">
+                        <span class="ticket-label">TOTAL</span>
+                        <span class="ticket-value" id="ticketPrecio">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="downloadTicketImage()">📸 Descargar Ticket</button>
+                <button class="btn btn-success" onclick="returnToApp()">🏠 Volver a la app</button>
+            </div>
+            <div class="fallback-link">
+                <a href="#" onclick="window.close()">Cerrar esta ventana</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <script>
+        // ========== CONFIGURACIÓN ==========
+        const API_URL = "http://192.168.5.100:3000";
+        const APP_SCHEME = "myapp"; 
+        const EXPO_DEV_URL = "exp://192.168.5.100:58081"; 
+        const IS_DEVELOPMENT = true;
+
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentId = urlParams.get('payment_id') || urlParams.get('collection_id');
+        const preferenceId = urlParams.get('preference_id');
+        
+        // ID del boleto (debes pasarlo desde tu backend)
+        // Por ahora simulamos que viene en la URL o lo buscamos por paymentId
+        let boletoId = urlParams.get('boleto_id');
+        
+        // Elementos DOM
+        const loadingContainer = document.getElementById('loadingContainer');
+        const successContainer = document.getElementById('successContainer');
+        
+        // ========== FUNCIONES ==========
+        
+        // Cargar datos del ticket desde el backend
+        async function loadTicket() {
+            // Si no hay boletoId, intentamos buscarlo por paymentId
+            if (!boletoId && paymentId) {
+                try {
+                    const response = await fetch(`${API_URL}/api/ticket/by-payment/${paymentId}`);
+                    const data = await response.json();
+                    if (data.boletoId) {
+                        boletoId = data.boletoId;
+                    }
+                } catch (error) {
+                    console.error('Error buscando boleto:', error);
+                }
+            }
+            
+            if (!boletoId) {
+                // Si no hay boleto, mostramos solo el éxito sin ticket
+                document.getElementById('ticket').classList.add('hidden');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/ticket/boleto/${boletoId}`);
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                
+                // Llenar ticket con los datos
+                document.getElementById('ticketCodigo').textContent = data.codigo;
+                document.getElementById('ticketPasajero').textContent = `${data.reserva.user.name} ${data.reserva.user.apellido}`;
+                document.getElementById('ticketDni').textContent = data.reserva.user.dni;
+                document.getElementById('ticketOrigen').textContent = data.reserva.viaje.ruta.origen;
+                document.getElementById('ticketDestino').textContent = data.reserva.viaje.ruta.destino;
+                document.getElementById('ticketFecha').textContent = new Date(data.reserva.viaje.fecha).toLocaleDateString('es-PE');
+                document.getElementById('ticketHora').textContent = data.reserva.viaje.hora;
+                document.getElementById('ticketBus').textContent = `${data.reserva.viaje.bus.placa}`;
+                document.getElementById('ticketAsiento').textContent = data.asiento.numeroAsiento;
+                document.getElementById('ticketPrecio').textContent = `S/ ${data.reserva.viaje.ruta.precio}`;
+                
+                // Generar QR
+                const qrData = JSON.stringify({
+                    boleto: data.codigo,
+                    asiento: data.asiento.numeroAsiento,
+                    pasajero: data.reserva.user.dni,
+                    ruta: `${data.reserva.viaje.ruta.origen}-${data.reserva.viaje.ruta.destino}`
+                });
+                
+                const qrContainer = document.getElementById('qrCode');
+                qrContainer.innerHTML = '';
+                new QRCode(qrContainer, {
+                    text: qrData,
+                    width: 140,
+                    height: 140,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+            } catch (error) {
+                console.error('Error al cargar ticket:', error);
+                document.getElementById('ticket').classList.add('hidden');
+            }
+        }
+        
+        // Descargar ticket como imagen
+        async function downloadTicketImage() {
+            const ticket = document.getElementById('ticket');
+            if (!ticket || ticket.classList.contains('hidden')) {
+                alert('No hay ticket para descargar');
+                return;
+            }
+            
+            const btn = event.target;
+            const originalText = btn.textContent;
+            
+            btn.textContent = '⏳ Generando imagen...';
+            btn.disabled = true;
+            
+            try {
+                // Guardar estilos originales
+                const originalOverflow = ticket.style.overflow;
+                ticket.style.overflow = 'visible';
+                
+                const canvas = await html2canvas(ticket, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true
+                });
+                
+                ticket.style.overflow = originalOverflow;
+                
+                const link = document.createElement('a');
+                const codigo = document.getElementById('ticketCodigo').textContent;
+                link.download = `ticket-${codigo}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al generar la imagen. Intenta nuevamente.');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // Volver a la app (igual que en cambiar contraseña)
+        function returnToApp() {
+            console.log('🔄 Intentando volver a la app...');
+            console.log('Payment ID:', paymentId);
+            
+            let appUrl = '';
+            
+            if (IS_DEVELOPMENT) {
+                appUrl = `${EXPO_DEV_URL}/--/pago-exitoso/${paymentId || 'success'}`;
+            } else {
+                appUrl = `${APP_SCHEME}://pago-exitoso/${paymentId || 'success'}`;
+            }
+            
+            console.log('📱 Abriendo URL:', appUrl);
+            window.location.href = appUrl;
+            
+            setTimeout(() => {
+                if (!document.getElementById('fallbackMsg')) {
+                    const msg = document.createElement('div');
+                    msg.id = 'fallbackMsg';
+                    msg.className = 'fallback-link';
+                    msg.style.marginTop = '10px';
+                    msg.innerHTML = `
+                        ¿No se abre la app? 
+                        <a href="#" onclick="window.close()">Cierra esta ventana</a><br>
+                        O abre manualmente: <strong>${APP_SCHEME}://pago-exitoso/${paymentId || 'success'}</strong>
+                    `;
+                    document.querySelector('.button-group').after(msg);
+                }
+            }, 2000);
+        }
+        
+        // Notificar pago exitoso al backend
+        async function notificarPagoExitoso() {
+            if (!paymentId) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/payments/confirm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        payment_id: paymentId,
+                        status: 'approved'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Si el backend devuelve el boletoId, lo guardamos
+                if (data.boletoId) {
+                    boletoId = data.boletoId;
+                }
+                
+                console.log('✅ Pago notificado al backend');
+            } catch (error) {
+                console.error('❌ Error al notificar pago:', error);
+            }
+        }
+        
+        // Inicializar todo
+        async function init() {
+            await notificarPagoExitoso();
+            await loadTicket();
+            
+            // Ocultar loading y mostrar contenido
+            loadingContainer.classList.add('hidden');
+            successContainer.classList.remove('hidden');
+            
+            // Redirección automática después de 5 segundos (opcional)
+            // setTimeout(() => {
+            //     returnToApp();
+            // }, 5000);
+        }
+        
+        // Iniciar
+        init();
+    </script>
+</body>
+</html>
